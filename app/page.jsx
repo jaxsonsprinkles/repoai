@@ -60,8 +60,8 @@ export default function Home() {
       </form>
 
       {tree && (
-        <div className="outer-container w-7/8 lg:w-3/4 xl:w-1/2 mx-auto max-h-1/2">
-          <ul className="list bg-base-200 rounded-box shadow-md p-4 inner-scroll-wrapper">
+        <div className="outer-container w-7/8 lg:w-3/4 xl:w-1/2 mx-auto max-h-1/2 overflow-y-scroll">
+          <ul className="list bg-base-200 rounded-box shadow-md p-4">
             {tree.tree.map((file, i) => {
               if (file.path.includes("/")) {
                 return;
@@ -73,7 +73,7 @@ export default function Home() {
                   data-tip={`Summarize ${file.path} with AI`}
                 >
                   <dialog id="my_modal_3" className="modal">
-                    <div className="modal-box">
+                    <div className="modal-box border-2 border-primary">
                       <form method="dialog">
                         <button
                           onClick={() => {
@@ -85,28 +85,30 @@ export default function Home() {
                           ✕
                         </button>
                       </form>
-                      <div className="flex flex-col gap-3 p-3">
+                      <div>
                         {!summary ? (
                           <div>
                             <h2 className="text-xl font-semibold mb-3">
                               Your AI summary is loading...
                             </h2>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4"></div>
-                            <div className="skeleton h-4 w-1/2"></div>
+                            <div className="flex flex-col gap-2 p-3">
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4"></div>
+                              <div className="skeleton h-4 w-1/2"></div>
+                            </div>
                           </div>
                         ) : (
                           <div>
                             <h2 className="text-xl font-semibold">
                               AI Summary of Your File
                             </h2>
-                            <p>{summary}</p>
+                            <p className="py-3">{summary}</p>
                           </div>
                         )}
                       </div>
