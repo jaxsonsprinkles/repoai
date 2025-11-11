@@ -1,146 +1,82 @@
 "use client";
 
+import FileTree from "@/components/FileTree";
+import RepoForm from "@/components/RepoForm";
+import SummaryModal from "@/components/SummaryModal";
 import fetchContents from "@/lib/fetchContent";
 import fetchTree from "@/lib/fetchTree";
 import getAI from "@/lib/getAI";
-import { File, Folder } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 export default function Home() {
   const [tree, setTree] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState(null);
-  const { register, handleSubmit } = useForm();
+  const [summaryCache, setSummaryCache] = useState({});
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const onSubmit = async ({ link, branch }) => {
-    const result = await fetchTree(link, branch);
-    const order = ["tree", "blob"];
-    result.tree.sort((a, b) => {
-      return order.indexOf(a.type) - order.indexOf(b.type);
-    });
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchTree(link, branch);
+      const order = ["tree", "blob"];
+      result.tree.sort((a, b) => {
+        return order.indexOf(a.type) - order.indexOf(b.type);
+      });
 
-    setTree(result);
+      setTree(result);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getSummary = async ({ link, path }) => {
-    document.getElementById("my_modal_3").showModal();
+  const getSummary = async (file) => {
+    setSelectedFile(file);
     setLoading(true);
-    const result = await fetchContents(link, path);
+    setSummary(null);
+    try {
+      if (!summaryCache[file.path]) {
+        const content = await fetchContents(tree.url, file.path);
 
-    const response = await getAI(path, result);
-    setSummary(response);
-    console.log(response);
+        const response = await getAI(file.path, content);
+        setSummary(response);
+        setSummaryCache((prev) => {
+          return { ...prev, [file.path]: response };
+        });
+      } else {
+        setSummary(summaryCache[file.path]);
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setSummary(null);
+    setSelectedFile(null);
+    setLoading(false);
   };
 
   return (
     <div className="p-3 space-y-3">
       <h1 className="text-4xl font-bold text-center">RepoAI</h1>
-      <form
-        className="space-x-2 flex justify-center"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="flex gap-2">
-          <input
-            {...register("link")}
-            type="text"
-            className="input input-primary w-3/4"
-            placeholder="Enter Github link here..."
-          />
-          <input
-            {...register("branch")}
-            type="text"
-            className="input input-primary w-1/4"
-            placeholder="Branch"
-          />
-        </div>
-        <button className="btn btn-primary" type="submit">
-          Submit
-        </button>
-      </form>
-
-      {tree && (
-        <div className="outer-container w-7/8 lg:w-3/4 xl:w-1/2 mx-auto max-h-1/2 overflow-y-scroll">
-          <ul className="list bg-base-200 rounded-box shadow-md p-4">
-            {tree.tree.map((file, i) => {
-              if (file.path.includes("/")) {
-                return;
-              }
-              return (
-                <div
-                  key={i}
-                  className="tooltip"
-                  data-tip={`Summarize ${file.path} with AI`}
-                >
-                  <dialog id="my_modal_3" className="modal">
-                    <div className="modal-box border-2 border-primary">
-                      <form method="dialog">
-                        <button
-                          onClick={() => {
-                            setSummary(null);
-                            setLoading(false);
-                          }}
-                          className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                        >
-                          ✕
-                        </button>
-                      </form>
-                      <div>
-                        {!summary ? (
-                          <div>
-                            <h2 className="text-xl font-semibold mb-3">
-                              Your AI summary is loading...
-                            </h2>
-                            <div className="flex flex-col gap-2 p-3">
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4"></div>
-                              <div className="skeleton h-4 w-1/2"></div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <h2 className="text-xl font-semibold">
-                              AI Summary of Your File
-                            </h2>
-                            <p className="py-3">{summary}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </dialog>
-                  <div
-                    onClick={() => {
-                      getSummary({
-                        link: tree.url,
-                        path: file.path,
-                      });
-                    }}
-                  >
-                    <li className="hover:border-2 hover:border-primary cursor-pointer list-row p-3! transition-transform duration-150 hover:scale-110">
-                      <div>
-                        {file.type == "blob" ? (
-                          <File className="w-5 h-5" />
-                        ) : (
-                          <Folder className="w-5 h-5" />
-                        )}
-                      </div>
-                      <div>
-                        <div>{file.path}</div>
-                      </div>
-                    </li>
-                  </div>
-                </div>
-              );
-            }) ?? <p>Loading...</p>}
-          </ul>
-        </div>
-      )}
+      <RepoForm onSubmit={onSubmit} loading={loading} />
+      {error && <p className="alert alert-error max-w-md mx-auto">{error}</p>}
+      {tree && <FileTree tree={tree} onFileClick={getSummary} />}
+      <SummaryModal
+        isOpen={selectedFile != null}
+        summary={summary}
+        fileName={selectedFile?.path}
+        loading={loading}
+        onClose={closeModal}
+      />
     </div>
   );
 }
