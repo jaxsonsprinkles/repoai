@@ -22,10 +22,6 @@ export default function Home() {
     setLoading(true);
     try {
       const result = await fetchTree(link, branch);
-      const order = ["tree", "blob"];
-      result.tree.sort((a, b) => {
-        return order.indexOf(a.type) - order.indexOf(b.type);
-      });
 
       setTree(result);
     } catch (error) {
