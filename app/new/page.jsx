@@ -21,9 +21,13 @@ export default function Home() {
 	const onSubmit = async ({ link, branch }) => {
 		setLoading(true);
 		try {
-			const result = await fetchTree(link, branch);
-
-			setTree(result);
+			if (!result.tree || result.tree.length === 0) {
+				toast.error('Repository is empty');
+				return;
+			} else {
+				const result = await fetchTree(link, branch);
+				setTree(result);
+			}
 		} catch (error) {
 			toast.error(
 				'Failed to fetch repository. Please check the link and branch.'
