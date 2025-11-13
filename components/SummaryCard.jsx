@@ -1,3 +1,4 @@
+import { Copy } from "lucide-react";
 import {
   Card,
   CardAction,
@@ -8,15 +9,25 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
+import toast from "react-hot-toast";
 
 export default function SummaryCard({ isOpen, summary, loading, fileName }) {
   if (!isOpen) return null;
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle className="text-xl">
           {loading ? `Analyzing ${fileName}` : `AI Summary of ${fileName}`}
         </CardTitle>
+        {!loading && (
+          <Copy
+            className="size-5 cursor-pointer"
+            onClick={async () => {
+              await navigator.clipboard.writeText(summary);
+              toast.success("Summary copied to clipboard");
+            }}
+          />
+        )}
       </CardHeader>
       <CardContent>
         {loading ? (
