@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api
+Sitemap: https://getrepoai.vercel.app/sitemap.xml
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
