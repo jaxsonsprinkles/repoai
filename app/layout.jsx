@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
+  "google-site-verification": "h7uze7KR8MapF3z9KKdoOv1WkISD_v5_lAryDhRcFsY",
   title: "RepoAI - AI Code Summarizer for GitHub Repositories",
   description:
     "Instantly understand any GitHub repository with AI-powered summaries. Analyze code files and get instant insights without reading through thousands of lines.",
